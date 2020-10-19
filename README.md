@@ -8,11 +8,11 @@ This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 Int
 ## [Contact](https://github.com/SteixnerKumar/Bayesian_Cognitive_Modeling/blob/master/README.md#contact-1)
 
 # General idea
-In the exercices folder of this repository you will find two different types of files -- '.html' and '.pdf'
+In the exercices folder of this repository you will find two different types of files -- '.html' and '.pdf' in their individual folders.
 
-The easiest way to look at the solution is to open the pdf version of the relevent file.
+The easiest way to look at the solution is to open the pdf version of the relevent exercise file in the pdf folder.
 
-While if you want an interactive experience where you can copy and paste the code directly from the browser, please download the relevent html version and use any modern browser to render it. Definitely better visuals.
+While if you want an interactive experience where you can copy and paste the code directly from the browser, please download the relevent exercise html version from the html folder and use any modern browser to render it. Definitely better visuals.
 
 ###### [Back to Contents](https://github.com/SteixnerKumar/Bayesian_Cognitive_Modeling/blob/master/README.md#Contents)
 
