@@ -8,10 +8,11 @@ This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 Int
 ## [Contact](https://github.com/SteixnerKumar/Bayesian_Cognitive_Modeling/blob/master/README.md#contact-1)
 
 # General idea
-This is an experimental setup of the 'tiger task'.
+In the exercices folder of this repository you will find two different types of files -- '.html' and '.pdf'
 
-The game is played always by a dyad (two participants) either independent of each other (TT) or with each other (ITT).
-The experiment runs on a single computer ideally connected to two screens. These screens are partly covered so that the individual participants visually only access their part of the task.
+The easiest way to look at the solution is to open the pdf version of the relevent file.
+
+While if you want an interactive experience where you can copy and paste the code directly from the browser, please download the relevent html version and use any modern browser to render it. Definitely better visuals.
 
 ###### [Back to Contents](https://github.com/SteixnerKumar/Bayesian_Cognitive_Modeling/blob/master/README.md#Contents)
 
