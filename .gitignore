@@ -1,0 +1,7 @@
+################################################
+# ignore Rmd, stan and nb.html file           #
+################################################
+
+exercises/*.Rmd
+exercises/*.stan
+exercises/*.nb.html
