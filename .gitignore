@@ -5,4 +5,4 @@
 exercises/*.Rmd
 exercises/*.stan
 exercises/*.nb.html
-exercises/run_all_files.R
+exercises/*.R
