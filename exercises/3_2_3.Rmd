@@ -22,8 +22,8 @@ output:
   pdf_document:
     latex_engine: xelatex 
     fig_caption: yes
-    fig_height: 6
-    fig_width: 15
+    fig_height: 10
+    fig_width: 17
     keep_tex: no
     number_sections: yes
     toc: yes

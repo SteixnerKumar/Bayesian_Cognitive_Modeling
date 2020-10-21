@@ -22,8 +22,8 @@ output:
   pdf_document:
     latex_engine: xelatex 
     fig_caption: yes
-    fig_height: 6
-    fig_width: 15
+    fig_height: 10
+    fig_width: 17
     keep_tex: no
     number_sections: yes
     toc: yes
@@ -166,7 +166,7 @@ plot_text_color <- adjustcolor("black",alpha.f=1)
 
 ### Plot (chains)
 The initial movement of the chains are shown here (including the warmup phase). The two chains begin from the initial starting points of as defined in the input parameters of the stan model.
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # chain plot
 x_limit <- c(0,200)
 trace_1 <- traceplot(mod_fit, 'theta', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE,show.legend = FALSE)+

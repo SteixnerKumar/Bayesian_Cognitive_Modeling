@@ -6,6 +6,20 @@ author: |
   | [Saurabh Steixner-Kumar](https://steixnerkumar.github.io/)
   | \footnotesize (social): [\large\faLinkedinSquare](https://www.linkedin.com/in/SteixnerKumar/) -  [\large\faGithub](https://github.com/SteixnerKumar) -  [\large\faTwitter](https://twitter.com/SteixnerKumar)
 output: 
+  pdf_document:
+    latex_engine: xelatex 
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 17
+    keep_tex: no
+    number_sections: yes
+    toc: yes
+  html_notebook: 
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 17
+    number_sections: yes
+    toc: yes
   html_document: 
     fig_caption: yes
     fig_height: 10
@@ -13,20 +27,6 @@ output:
     number_sections: yes
     toc: yes
     toc_float: true
-  html_notebook: 
-    fig_caption: yes
-    fig_height: 10
-    fig_width: 17
-    number_sections: yes
-    toc: yes
-  pdf_document:
-    latex_engine: xelatex 
-    fig_caption: yes
-    fig_height: 6
-    fig_width: 15
-    keep_tex: no
-    number_sections: yes
-    toc: yes
 editor_options: 
   chunk_output_type: inline
 # runtime: shiny
@@ -201,7 +201,7 @@ plot_text_color <- adjustcolor("black",alpha.f=1)
 
 ### Plot (chains)
 The initial movement of the chains are shown here (including the warmup phase). The two chains begin from the initial starting points of as defined in the input parameters of the stan model. In A.- B. (row 1) and respectively in C.- D. (row 2), only the iteration number is different and hence the start of the chains will look similar. Also to note is the same seed. 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # chain plot
 x_limit <- c(0,200)
 trace_1 <- traceplot(mod_fit, 'theta', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE,show.legend = FALSE)+

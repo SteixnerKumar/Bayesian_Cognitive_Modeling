@@ -22,8 +22,8 @@ output:
   pdf_document:
     latex_engine: xelatex 
     fig_caption: yes
-    fig_height: 6
-    fig_width: 15
+    fig_height: 10
+    fig_width: 17
     keep_tex: no
     number_sections: yes
     toc: yes
@@ -171,15 +171,15 @@ plot_text_color <- adjustcolor("black",alpha.f=1)
 
 ### Plot (chains)
 The initial movement of the chains are shown here (including the warmup phase). The two chains begin from the initial starting points of as defined in the input parameters of the stan model.
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # chain plot
 x_limit <- c(0,200)
-trace_1 <- traceplot(mod_fit, 'theta', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE)+
+trace_1 <- traceplot(mod_fit, 'theta', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE,show.legend = FALSE)+
   xlim(x_limit[1], x_limit[2])+
   scale_color_manual(values = c(plot_color_3, plot_color_4)) +
   theme(legend.position = "bottom")+
   theme_classic()+
-  ylab('theta')+xlab('')+ggtitle(paste0('k=',stan_data$k,', n=',stan_data$n))+
+  ylab('theta')+xlab('iterations')+ggtitle(paste0('k=',stan_data$k,', n=',stan_data$n))+
   theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
         legend.title = element_text(color = plot_text_color, size = plot_text_size),
         legend.key.size = unit(3,"line"),
@@ -193,7 +193,7 @@ trace_2 <- traceplot(mod_fit_1, 'theta', include = TRUE, unconstrain = FALSE,inc
   scale_color_manual(values = c(plot_color_3, plot_color_4)) +
   theme(legend.position = "bottom")+
   theme_classic()+
-  ylab('theta')+xlab('iterations')+ggtitle(paste0('k=',stan_data_1$k,', n=',stan_data_1$n))+
+  ylab('')+xlab('iterations')+ggtitle(paste0('k=',stan_data_1$k,', n=',stan_data_1$n))+
   theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
         legend.title = element_text(color = plot_text_color, size = plot_text_size),
         legend.key.size = unit(3,"line"),
@@ -202,7 +202,7 @@ trace_2 <- traceplot(mod_fit_1, 'theta', include = TRUE, unconstrain = FALSE,inc
         axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
         axis.title.y = element_text(color = plot_text_color, size = plot_text_size))+
   theme(plot.title = element_text(hjust=0.5))
-patchwork <- trace_1/trace_2
+patchwork <- trace_1+trace_2
 p_ranges_x <- c(ggplot_build(patchwork[[1]])$layout$panel_scales_x[[1]]$range$range,
   ggplot_build(patchwork[[2]])$layout$panel_scales_x[[1]]$range$range)
 
