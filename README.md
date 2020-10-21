@@ -17,7 +17,7 @@ While if you want an interactive experience where you can copy and paste the cod
 ###### [Back to Contents](https://github.com/SteixnerKumar/Bayesian_Cognitive_Modeling/blob/master/README.md#Contents)
 
 # The default versions used for this codebase
---> MATLAB version and toolboxes versions 
+--> Software and toolboxh versions 
 
 + R version.string R version 3.6.1 (2019-07-05)
 ++ nickname       Action of the Toes
