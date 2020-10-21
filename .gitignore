@@ -1,8 +1,9 @@
 ################################################
 # ignore Rmd, stan and nb.html file           #
 ################################################
-
-exercises/*.Rmd
+#exercises/*.Rmd
+#exercises/*.R
 exercises/*.stan
 exercises/*.nb.html
-exercises/*.R
+exercises/*.tex
+exercises/*.Rhistory

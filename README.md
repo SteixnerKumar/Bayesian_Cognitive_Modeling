@@ -8,16 +8,19 @@ This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 Int
 ## [Contact](https://github.com/SteixnerKumar/Bayesian_Cognitive_Modeling/blob/master/README.md#contact-1)
 
 # General idea
-In the exercices folder of this repository you will find two different types of files -- '.html' and '.pdf' in their individual folders.
+Once inside the exercises folder, the easiest way to look at the solution is to open the pdf version of the relevant exercise file in the pdf_files folder.
 
-The easiest way to look at the solution is to open the pdf version of the relevent exercise file in the pdf folder.
 
-While if you want an interactive experience where you can copy and paste the code directly from the browser, please download the relevent exercise html version from the html folder and use any modern browser to render it. Definitely better visuals.
+While if you want an interactive experience where you can copy and paste the code directly from the browser, please download the relevant (exercise) html file from the html_files folder and use any modern browser to render it. Definitely better visuals.
+
+
+In the exercises folder of this repository you will also find individual .Rmd files (for all exercises). These files are used to render the output files in the '.html' and '.pdf' format using the 'render_files.R' script. For solution of the exercises please directly go to the relevant files in either the 'html_files' or 'pdf_files' folder. To generate these files yourself on your own machine '.Rmd' files are your friend.
+
 
 ###### [Back to Contents](https://github.com/SteixnerKumar/Bayesian_Cognitive_Modeling/blob/master/README.md#Contents)
 
 # The default versions used for this codebase
---> Software and toolboxh versions 
+--> Software and toolbox versions 
 
 + R version.string R version 3.6.1 (2019-07-05)
 ++ nickname       Action of the Toes

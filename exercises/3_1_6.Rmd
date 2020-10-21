@@ -1,0 +1,263 @@
+---
+title: "Exercise 3.1.6"
+description: | 
+  Individual exercise document
+author: |
+  | [Saurabh Steixner-Kumar](https://steixnerkumar.github.io/)
+  | \footnotesize (social): [\large\faLinkedinSquare](https://www.linkedin.com/in/SteixnerKumar/) -  [\large\faGithub](https://github.com/SteixnerKumar) -  [\large\faTwitter](https://twitter.com/SteixnerKumar)
+output: 
+  html_document: 
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 17
+    number_sections: yes
+    toc: yes
+    toc_float: true
+  html_notebook: 
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 17
+    number_sections: yes
+    toc: yes
+  pdf_document:
+    latex_engine: xelatex 
+    fig_caption: yes
+    fig_height: 6
+    fig_width: 15
+    keep_tex: no
+    number_sections: yes
+    toc: yes
+editor_options: 
+  chunk_output_type: inline
+# runtime: shiny
+header-includes:
+  - \usepackage{titling}
+  - '\defaultfontfeatures{Extension = .otf}'
+  - '\usepackage{fontawesome}'
+  - \preauthor{\begin{flushright}}
+  - \postauthor{\end{flushright}}
+---
+
+# Question
+Exercise 3.1.6 Alter the data to k = 0 and n = 1, and comment on the shape
+of the posterior for the rate $\theta$.
+
+# Comments/Solution
+Comparing at the posterior distributions (from the plots section below) of k=0, n=1 to the previous distribution of k=50, n=100, one can observe that the $\theta$ estimates have shifted very slightly to the lekt and towards zero from the prior value of a uniform distribution. The shift is very subtle because the data sample is only 1. This shift would become more prominent like exercise 3.1.5 with higher n towards left.
+
+The model used to calculate the required values and the plots is scripted below. Copy/pasting the given code will generate the same result on your own machine.
+
+
+# Code
+## libraries
+The libraries required for the script and the plots.
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# clears workspace
+rm(list=ls()) 
+#load libraries
+library(rstan)
+library(ggplot2)
+library(patchwork)
+```
+
+
+## Data
+The data required for this particular stan model.
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# data  initialization
+k <- 50
+n <- 100
+k_1 <- 0
+n_1 <- 1
+# to be passed on to Stan
+stan_data <- list(k = k, n = n)
+stan_data_1 <- list(k = k_1, n = n_1)
+```
+
+
+## Stan code
+Stan code, that can be written in R as such or in a seperate new file with stan extension.
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+write("// Stan code here in this section
+
+// Inferring theta
+data { 
+  int<lower=1> n; 
+  int<lower=0> k;
+} 
+parameters {
+  real<lower=0,upper=1> theta;
+} 
+model {
+  // Prior Distribution for theta
+  theta ~ beta(1, 1);
+  
+  // Observed Counts
+  k ~ binomial(n, theta);
+} // ",
+
+"3_1_6.stan")
+```
+
+## code in R to run stan
+Running stan through R (with the required input parameters).
+```{r echo=TRUE, results = 'hide', message=FALSE, warning=FALSE, paged.print=TRUE}
+
+myinits <- list(
+  list(theta=.1),  # chain 1 starting value
+  list(theta=.9))  # chain 2 starting value
+
+# parameters to be monitored:  
+parameters <- c("theta")
+
+# The following command calls Stan with specific options.
+# For a detailed description type "?stan".
+mod_fit <- stan(file="3_1_6.stan",   
+                data=stan_data, 
+                init=myinits,  # If not specified, gives random inits
+                pars=parameters,
+                iter=2000, 
+                chains=2, 
+                thin=1,
+                warmup=100,  # Stands for burn-in; Default = iter/2
+                seed=123  # Setting seed; Default is random seed
+)
+mod_fit_1 <- stan(file="3_1_6.stan",   
+                data=stan_data_1, 
+                init=myinits,  # If not specified, gives random inits
+                pars=parameters,
+                iter=2000, 
+                chains=2, 
+                thin=1,
+                warmup=100,  # Stands for burn-in; Default = iter/2
+                seed=123  # Setting seed; Default is random seed
+)
+```
+
+# Outputs
+## Model summary
+For dataset k=50 and n=100. (stan_data)
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# The commands below are useful for a quick overview:
+print(mod_fit)  # a rough summary
+#plot(mod_fit)   # a visual representation
+```
+For dataset k=0 and n=1. (stan_data_1)
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# The commands below are useful for a quick overview:
+print(mod_fit_1)  # a rough summary
+```
+
+## Plots
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+# Diagnostic plot
+# stan_par(mod_fit, 'theta', chain = 0)
+
+# First, some options to make the plot look better:
+#
+plot_color_1 <- adjustcolor("black",alpha.f=1)
+plot_color_2 <- adjustcolor("white",alpha.f=1)
+plot_color_3 <- adjustcolor("darkred",alpha.f=1)
+plot_color_4 <- adjustcolor("darkgreen",alpha.f=1)
+plot_color_5 <- adjustcolor("blue",alpha.f=0.8)
+plot_text_size <- 32
+plot_text_color <- adjustcolor("black",alpha.f=1)
+
+```
+
+
+### Plot (chains)
+The initial movement of the chains are shown here (including the warmup phase). The two chains begin from the initial starting points of as defined in the input parameters of the stan model.
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# chain plot
+x_limit <- c(0,200)
+trace_1 <- traceplot(mod_fit, 'theta', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE)+
+  xlim(x_limit[1], x_limit[2])+
+  scale_color_manual(values = c(plot_color_3, plot_color_4)) +
+  theme(legend.position = "bottom")+
+  theme_classic()+
+  ylab('theta')+xlab('')+ggtitle(paste0('k=',stan_data$k,', n=',stan_data$n))+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y = element_text(color = plot_text_color, size = plot_text_size))+
+  theme(plot.title = element_text(hjust=0.5))
+trace_2 <- traceplot(mod_fit_1, 'theta', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE)+
+  xlim(x_limit[1], x_limit[2])+
+  scale_color_manual(values = c(plot_color_3, plot_color_4)) +
+  theme(legend.position = "bottom")+
+  theme_classic()+
+  ylab('theta')+xlab('iterations')+ggtitle(paste0('k=',stan_data_1$k,', n=',stan_data_1$n))+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y = element_text(color = plot_text_color, size = plot_text_size))+
+  theme(plot.title = element_text(hjust=0.5))
+patchwork <- trace_1/trace_2
+p_ranges_x <- c(ggplot_build(patchwork[[1]])$layout$panel_scales_x[[1]]$range$range,
+  ggplot_build(patchwork[[2]])$layout$panel_scales_x[[1]]$range$range)
+
+p_ranges_y <- c(ggplot_build(patchwork[[1]])$layout$panel_scales_y[[1]]$range$range,
+                ggplot_build(patchwork[[2]])$layout$panel_scales_y[[1]]$range$range)
+
+patchwork + plot_annotation(title = 'comparison of datasets') +
+  plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = plot_text_size+2),
+                                            plot.title=element_text(size = plot_text_size+2,hjust = 0.5)) &
+  xlim(min(p_ranges_x), max(p_ranges_x)) & 
+  ylim(min(p_ranges_y), max(p_ranges_y))
+```
+
+### Plot (posterior)
+The plot of the $\theta$ values per chain superimposed on each other.
+```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# Now let's plot a histogram/density for theta.
+# Plot
+
+dens_1 <- stan_dens(mod_fit, 'theta', alpha = 0.3, include = TRUE, unconstrain = FALSE,
+            inc_warmup = FALSE, separate_chains = TRUE,show.legend = FALSE) +
+  scale_fill_manual(values = c(plot_color_3, plot_color_4))+
+  xlab('theta')+ylab('density')+ggtitle(paste0('k=',stan_data$k,', n=',stan_data$n))+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y = element_text(color = plot_text_color, angle = 90,size = plot_text_size))+
+  theme(plot.title = element_text(hjust=0.5))
+dens_2 <- stan_dens(mod_fit_1, 'theta', alpha = 0.3, include = TRUE, unconstrain = FALSE,
+            inc_warmup = FALSE, separate_chains = TRUE) +
+  scale_fill_manual(values = c(plot_color_3, plot_color_4))+
+  xlab('theta')+ylab('density')+ggtitle(paste0('k=',stan_data_1$k,', n=',stan_data_1$n))+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y =element_blank())+
+  theme(plot.title = element_text(hjust=0.5))
+patchwork <- dens_1+dens_2
+p_ranges_x <- c(ggplot_build(patchwork[[1]])$layout$panel_scales_x[[1]]$range$range,
+  ggplot_build(patchwork[[2]])$layout$panel_scales_x[[1]]$range$range)
+
+p_ranges_y <- c(ggplot_build(patchwork[[1]])$layout$panel_scales_y[[1]]$range$range,
+                ggplot_build(patchwork[[2]])$layout$panel_scales_y[[1]]$range$range)
+
+patchwork + plot_annotation(title = 'comparison of datasets') +
+  plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = plot_text_size+2),
+                                            plot.title=element_text(size = plot_text_size+2,hjust = 0.5)) &
+  xlim(min(p_ranges_x), max(p_ranges_x)) & 
+  ylim(min(p_ranges_y), max(p_ranges_y))
+
+```
+
+
+

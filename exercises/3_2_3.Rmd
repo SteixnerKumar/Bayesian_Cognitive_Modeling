@@ -1,0 +1,48 @@
+---
+title: "Exercise 3.2.3"
+description: | 
+  Individual exercise document
+author: |
+  | [Saurabh Steixner-Kumar](https://steixnerkumar.github.io/)
+  | \footnotesize (social): [\large\faLinkedinSquare](https://www.linkedin.com/in/SteixnerKumar/) -  [\large\faGithub](https://github.com/SteixnerKumar) -  [\large\faTwitter](https://twitter.com/SteixnerKumar)
+output: 
+  html_document: 
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 17
+    number_sections: yes
+    toc: yes
+    toc_float: true
+  html_notebook: 
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 17
+    number_sections: yes
+    toc: yes
+  pdf_document:
+    latex_engine: xelatex 
+    fig_caption: yes
+    fig_height: 6
+    fig_width: 15
+    keep_tex: no
+    number_sections: yes
+    toc: yes
+editor_options: 
+  chunk_output_type: inline
+# runtime: shiny
+header-includes:
+  - \usepackage{titling}
+  - '\defaultfontfeatures{Extension = .otf}'
+  - '\usepackage{fontawesome}'
+  - \preauthor{\begin{flushright}}
+  - \postauthor{\end{flushright}}
+---
+
+# Question
+Exercise 3.2.3 In what context might different possible summaries of the posterior
+distribution of $\delta$ (i.e., point estimates, or credible intervals) be reasonable, and
+when might it be important to show the full posterior distribution?
+
+# Comments/Solution
+For certain scenarios where the prior of the underlying parameter that controls the posterior may not be a flat/uniform distribution. For these cases the the point estimates or credible intervals may not describe the full story and would be important to observe.
+

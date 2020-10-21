@@ -1,0 +1,214 @@
+---
+title: "Exercise 3.1.2"
+description: | 
+  Individual exercise document
+author: |
+  | [Saurabh Steixner-Kumar](https://steixnerkumar.github.io/)
+  | \footnotesize (social): [\large\faLinkedinSquare](https://www.linkedin.com/in/SteixnerKumar/) -  [\large\faGithub](https://github.com/SteixnerKumar) -  [\large\faTwitter](https://twitter.com/SteixnerKumar)
+output: 
+  html_document: 
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 17
+    number_sections: yes
+    toc: yes
+    toc_float: true
+  html_notebook: 
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 17
+    number_sections: yes
+    toc: yes
+  pdf_document:
+    latex_engine: xelatex 
+    fig_caption: yes
+    fig_height: 6
+    fig_width: 15
+    keep_tex: no
+    number_sections: yes
+    toc: yes
+editor_options: 
+  chunk_output_type: inline
+# runtime: shiny
+header-includes:
+  - \usepackage{titling}
+  - '\defaultfontfeatures{Extension = .otf}'
+  - '\usepackage{fontawesome}'
+  - \preauthor{\begin{flushright}}
+  - \postauthor{\end{flushright}}
+---
+
+# Question
+Exercise 3.1.2 Consider again the posterior distribution for $\theta$ given k = 5 successes
+out of n = 10 trials. Based on a visual impression, what is your estimate
+of how much more likely the rate $\theta$ is to equal to 0.5 rather than 0.7? How
+did you arrive at your estimate?
+
+# Comments/Solution
+Looking at the posterior distribution (from the plots section below), one can estimate that the value of $\theta$ is approximately twice more likely to be 0.5 than 0.7. We can calculate the exact value from the estimates as:
+
+```{r echo=TRUE, eval = FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+length(theta[theta>0.49 & theta<0.51])/length(theta[theta>0.69 & theta<0.71])
+```
+The value is given in the last section of this page under 'calculation'.
+The model used to calculate the required values and the plots is scripted below. Copy/pasting the given code will generate the same result on your own machine.
+
+
+# Code
+## libraries
+The libraries required for the script and the plots.
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# clears workspace
+rm(list=ls()) 
+#load libraries
+library(rstan)
+library(ggplot2)
+library(patchwork)
+```
+
+
+## Data
+The data required for this particular stan model.
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# data  initialization
+k <- 5
+n <- 10
+# to be passed on to Stan
+stan_data <- list(k = k, n = n)
+```
+
+
+## Stan code
+Stan code, that can be written in R as such or in a seperate new file with stan extension.
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+write("// Stan code here in this section
+
+// Inferring theta
+data { 
+  int<lower=1> n; 
+  int<lower=0> k;
+} 
+parameters {
+  real<lower=0,upper=1> theta;
+} 
+model {
+  // Prior Distribution for theta
+  theta ~ beta(1, 1);
+  
+  // Observed Counts
+  k ~ binomial(n, theta);
+} // ",
+
+"3_1_2.stan")
+```
+
+## code in R to run stan
+Running stan through R (with the required input parameters).
+```{r echo=TRUE, results = 'hide', message=FALSE, warning=FALSE, paged.print=TRUE}
+
+myinits <- list(
+  list(theta=.1),  # chain 1 starting value
+  list(theta=.9))  # chain 2 starting value
+
+# parameters to be monitored:  
+parameters <- c("theta")
+
+# The following command calls Stan with specific options.
+# For a detailed description type "?stan".
+mod_fit <- stan(file="3_1_2.stan",   
+                data=stan_data, 
+                init=myinits,  # If not specified, gives random inits
+                pars=parameters,
+                iter=2000, 
+                chains=2, 
+                thin=1,
+                warmup=100,  # Stands for burn-in; Default = iter/2
+                seed=123  # Setting seed; Default is random seed
+)
+```
+
+# Outputs
+## Model summary
+In order of definition.
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# The commands below are useful for a quick overview:
+print(mod_fit)  # a rough summary
+#plot(mod_fit)   # a visual representation
+
+# extract the data from the model
+mod_fit_extracted <- extract(mod_fit,inc_warmup = FALSE)
+loc_param <- which(names(mod_fit_extracted) == 'theta')
+param <- as.array(mod_fit)[,,loc_param]
+
+# Collect posterior and prior samples across all chains:
+theta <- mod_fit_extracted$theta
+```
+
+## Plots
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+# Diagnostic plot
+# stan_par(mod_fit, 'theta', chain = 0)
+
+# First, some options to make the plot look better:
+#
+plot_color_1 <- adjustcolor("black",alpha.f=1)
+plot_color_2 <- adjustcolor("white",alpha.f=1)
+plot_color_3 <- adjustcolor("darkred",alpha.f=1)
+plot_color_4 <- adjustcolor("darkgreen",alpha.f=1)
+plot_color_5 <- adjustcolor("blue",alpha.f=0.8)
+plot_text_size <- 32
+plot_text_color <- adjustcolor("black",alpha.f=1)
+
+```
+
+
+### Plot (chains)
+The initial movement of the chains are shown here (including the warmup phase). The two chains begin from the initial starting points of as defined in the input parameters of the stan model.
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# chain plot
+traceplot(mod_fit, 'theta', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE)+
+  xlim(0, 200)+
+  scale_color_manual(values = c(plot_color_3, plot_color_4)) +
+  theme(legend.position = "bottom")+
+  theme_classic()+
+  ylab('theta')+xlab('iterations')+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y = element_text(color = plot_text_color, size = plot_text_size))+
+  theme(plot.title = element_text(hjust=0.5))
+
+```
+
+### Plot (posterior)
+The plot of the $\theta$ values per chain superimposed on each other.
+```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# Now let's plot a histogram/density for theta.
+# Plot
+
+stan_dens(mod_fit, 'theta', alpha = 0.3, include = TRUE, unconstrain = FALSE,
+            inc_warmup = FALSE, separate_chains = TRUE) +
+  scale_fill_manual(values = c(plot_color_3, plot_color_4))+
+  xlab('theta')+ylab('density')+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y = element_text(color = plot_text_color, angle = 90,size = plot_text_size))+
+  theme(plot.title = element_text(hjust=0.5))
+
+```
+
+# Calculation
+Calculation from the comment/solution.
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+length(theta[theta>0.49 & theta<0.51])/length(theta[theta>0.69 & theta<0.71])
+```
+
+
