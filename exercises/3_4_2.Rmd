@@ -834,22 +834,11 @@ df_plot <- data.frame(
   theta3 = theta3,
   theta4 = theta4
   )
-df_plot_hist <- data.frame(
-  postpredk1 = postpredk1,
-  postpredk2 = postpredk2,
-  postpredk3 = postpredk3,
-  postpredk4 = postpredk4,
-  priorpredk1 = priorpredk1,
-  priorpredk2 = priorpredk2,
-  priorpredk3 = priorpredk3,
-  priorpredk4 = priorpredk4
-)
 # wide to long format
 df_plot <- gather(df_plot, parameter, value, theta1:theta4, factor_key=TRUE)
-df_plot_hist <- gather(df_plot_hist, parameter, value, postpredk1:priorpredk4, factor_key=TRUE)
 
 # plot
-plot_top <- ggplot(df_plot, aes(x=value,fill=parameter)) + 
+ggplot(df_plot, aes(x=value,fill=parameter)) + 
   geom_density()+
   scale_fill_manual(values = c(plot_color_6, plot_color_7,plot_color_8, plot_color_9))+
   xlab('thetas')+ylab('density')+
