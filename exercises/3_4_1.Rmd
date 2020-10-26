@@ -1,5 +1,5 @@
 ---
-title: "Exercise 3.2.1"
+title: "Exercise 3.4.1"
 description: | 
   Individual exercise document
 author: |
@@ -39,11 +39,10 @@ header-includes:
 ---
 
 # Question
-Exercise 3.2.1 Compare the data sets k1 = 8, n1 = 10, k2 = 7, n2 = 10 and k1 = 80, n1 = 100, k2 = 70, n2 = 100. Before you run the code, try to predict the effect that adding more trials has on the posterior distribution for $\delta$.
+Exercise 3.4.1 Make sure you understand the prior, posterior, prior predictive and posterior predictive distributions, and how they relate to each other (e.g., why is the top panel of Figure 3.9 a line plot, while the bottom panel is a bar graph?). Understanding these ideas is a key to understanding Bayesian analysis. Check your understanding by trying other data sets, varying both k and n.
 
 # Comments/Solution
-Looking at the posterior distribution from the previous exercises we know that ading more data will make the posterior estimate narrower and less uncertain. Now we can also run the model script of the two datasets and observe these effects. Have a look at the plots section below.
-
+The top panel represents the density (positive hits) of the parameters while the bottom panel is the number of counts of the prior and posterior positive hits. This is based on the given data for 5 positive hit out of 15. Look at the plots section (below) to visually inspect it further. You will also see the trace chain for the theta_prior all over the place, showing a flat prior (density plot clears it further).
 
 The model used to calculate the required values and the plots is scripted below. Copy/pasting the given code will generate the same result on your own machine.
 
@@ -56,6 +55,7 @@ The libraries required for the script and the plots.
 rm(list=ls()) 
 #load libraries
 library(rstan)
+library(tidyr)
 library(ggplot2)
 library(patchwork)
 ```
@@ -65,13 +65,9 @@ library(patchwork)
 The data required for this particular stan model.
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # data  initialization
-k1 <- 8;n1 <- 10;k2 <- 7;n2 <- 10
+k <- 5;n <- 15
 # to be passed on to Stan
-stan_data <- list(k1 = k1, n1 = n1, k2 = k2, n2 = n2)
-#
-k1 <- 80;n1 <- 100;k2 <- 70;n2 <- 100
-# to be passed on to Stan
-stan_data_1 <- list(k1 = k1, n1 = n1, k2 = k2, n2 = n2)
+stan_data <- list(k = k, n = n)
 ```
 
 
@@ -80,31 +76,33 @@ Stan code, that can be written in R as such or in a seperate new file with stan 
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
 write("// Stan code here in this section
 
-// Inferring delta through theta1 and theta2
-data { 
-  int<lower=1> n1; 
-  int<lower=1> n2; 
-  int<lower=0> k1;
-  int<lower=0> k2;
+// Prior and Posterior Prediction
+data {
+  int<lower=1> n; 
+  int<lower=0> k;
 } 
 parameters {
-  real<lower=0,upper=1> theta1;
-  real<lower=0,upper=1> theta2;
-} 
-transformed parameters {
-  real<lower=-1,upper=1> delta;
-  delta = theta1 - theta2;
+  real<lower=0,upper=1> theta;
+  real<lower=0,upper=1> thetaprior;
 }
 model {
-  // Prior Distribution for Rate Theta
-  theta1 ~ beta(1, 1);
-  theta2 ~ beta(1, 1);
-  // Observed Counts
-  k1 ~ binomial(n1, theta1);
-  k2 ~ binomial(n2, theta2);
+  // Prior on theta
+  theta ~ beta(1, 1);
+  thetaprior ~ beta(1, 1);
+  // Observed Data
+  k ~ binomial(n, theta);
+}
+generated quantities {
+  int<lower=0> postpredk;
+  int<lower=0> priorpredk;
+    
+  // Posterior Predictive
+  postpredk = binomial_rng(n, theta);
+  // Prior Predictive
+  priorpredk = binomial_rng(n, thetaprior);
 } // ",
 
-"3_2_1.stan")
+"3_4_1.stan")
 ```
 
 ## code in R to run stan
@@ -112,26 +110,16 @@ Running stan through R (with the required input parameters).
 ```{r echo=TRUE, results = 'hide', message=FALSE, warning=FALSE, paged.print=TRUE}
 
 myinits <- list(
-  list(theta1=.1,theta2=.9),  # chain 1 starting value
-  list(theta1=.9,theta2=.1))  # chain 2 starting value
+  list(theta=.5,thetaprior=.5),  # chain 1 starting value
+  list(theta=.5,thetaprior=.5))  # chain 2 starting value
 
 # parameters to be monitored:  
-parameters <- c("delta", "theta1", "theta2")
+parameters <- c("theta", "thetaprior", "postpredk", "priorpredk")
 
 # The following command calls Stan with specific options.
 # For a detailed description type "?stan".
-mod_fit <- stan(file="3_2_1.stan",   
+mod_fit <- stan(file="3_4_1.stan",   
                 data=stan_data, 
-                init=myinits,  # If not specified, gives random inits
-                pars=parameters,
-                iter=2000, 
-                chains=2, 
-                thin=1,
-                warmup=100,  # Stands for burn-in; Default = iter/2
-                seed=123  # Setting seed; Default is random seed
-)
-mod_fit_1 <- stan(file="3_2_1.stan",   
-                data=stan_data_1, 
                 init=myinits,  # If not specified, gives random inits
                 pars=parameters,
                 iter=2000, 
@@ -148,8 +136,15 @@ In order of definition.
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # The commands below are useful for a quick overview:
 print(mod_fit)  # a rough summary
-print(mod_fit_1)  # a rough summary
 #plot(mod_fit)   # a visual representation
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+# get the data from the model
+theta   <- rstan::extract(mod_fit)$theta
+thetaprior  <- rstan::extract(mod_fit)$thetaprior 
+priorpredk  <- rstan::extract(mod_fit)$priorpredk
+postpredk   <- rstan::extract(mod_fit)$postpredk
 ```
 
 ## Plots
@@ -165,6 +160,8 @@ plot_color_2 <- adjustcolor("white",alpha.f=1)
 plot_color_3 <- adjustcolor("darkred",alpha.f=1)
 plot_color_4 <- adjustcolor("darkgreen",alpha.f=1)
 plot_color_5 <- adjustcolor("blue",alpha.f=0.8)
+plot_color_6 <- adjustcolor("darkred",alpha.f=0.6)
+plot_color_7 <- adjustcolor("darkgreen",alpha.f=0.6)
 plot_text_size <- 32
 plot_text_color <- adjustcolor("black",alpha.f=1)
 
@@ -176,13 +173,13 @@ The initial movement of the chains are shown here (including the warmup phase). 
 ```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # chain plot
 x_limit <- c(0,200)
-trace_1 <- traceplot(mod_fit, 'delta', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE,show.legend = FALSE)+
+trace_1 <- traceplot(mod_fit, 'theta', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE,show.legend = FALSE)+
   xlim(x_limit[1], x_limit[2])+
   scale_color_manual(values = c(plot_color_3, plot_color_4)) +
   theme(legend.position = "bottom")+
   theme_classic()+
-  ylab('theta difference')+xlab('iterations')+
-  ggtitle(paste0('k1=',stan_data$k1,', n1=',stan_data$n1,'\n','k2=',stan_data$k2,', n2=',stan_data$n2))+
+  ylab('theta')+xlab('iterations')+
+  ggtitle(paste0('k=',stan_data$k,', n=',stan_data$n))+
   theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
         legend.title = element_text(color = plot_text_color, size = plot_text_size),
         legend.key.size = unit(3,"line"),
@@ -191,13 +188,13 @@ trace_1 <- traceplot(mod_fit, 'delta', include = TRUE, unconstrain = FALSE,inc_w
         axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
         axis.title.y = element_text(color = plot_text_color, size = plot_text_size))+
   theme(plot.title = element_text(hjust=0.5))
-trace_2 <- traceplot(mod_fit_1, 'delta', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE)+
+trace_2 <- traceplot(mod_fit, 'thetaprior', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE)+
   xlim(x_limit[1], x_limit[2])+
   scale_color_manual(values = c(plot_color_3, plot_color_4)) +
   theme(legend.position = "bottom")+
   theme_classic()+
-  ylab('')+xlab('iterations')+
-  ggtitle(paste0('k1=',stan_data_1$k1,', n1=',stan_data_1$n1,'\n','k2=',stan_data_1$k2,', n2=',stan_data_1$n2))+
+  ylab('theta_prior')+xlab('iterations')+
+  ggtitle(paste0('k=',stan_data$k,', n=',stan_data$n))+
   theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
         legend.title = element_text(color = plot_text_color, size = plot_text_size),
         legend.key.size = unit(3,"line"),
@@ -213,7 +210,7 @@ p_ranges_x <- c(ggplot_build(patchwork[[1]])$layout$panel_scales_x[[1]]$range$ra
 p_ranges_y <- c(ggplot_build(patchwork[[1]])$layout$panel_scales_y[[1]]$range$range,
                 ggplot_build(patchwork[[2]])$layout$panel_scales_y[[1]]$range$range)
 
-patchwork + plot_annotation(title = 'comparison of datasets') +
+patchwork + plot_annotation(title = 'the two parameters') +
   plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = plot_text_size+2),
                                             plot.title=element_text(size = plot_text_size+2,hjust = 0.5)) &
   xlim(min(p_ranges_x), max(p_ranges_x)) & 
@@ -222,16 +219,16 @@ patchwork + plot_annotation(title = 'comparison of datasets') +
 ```
 
 ### Plot (posterior)
-The plot of the $\delta$ values per chain superimposed on each other.
+The plot of the $\theta$ values per chain superimposed on each other.
 ```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # Now let's plot a histogram/density for theta.
 # Plot
 
-dens_1 <- stan_dens(mod_fit, 'delta', alpha = 0.3, include = TRUE, unconstrain = FALSE,
+dens_1 <- stan_dens(mod_fit, 'theta', alpha = 0.3, include = TRUE, unconstrain = FALSE,
             inc_warmup = FALSE, separate_chains = TRUE,show.legend = FALSE) +
   scale_fill_manual(values = c(plot_color_3, plot_color_4))+
-  xlab('theta difference')+ylab('density')+
-  ggtitle(paste0('k1=',stan_data$k1,', n1=',stan_data$n1,'\n','k2=',stan_data$k2,', n2=',stan_data$n2))+
+  xlab('theta')+ylab('density')+
+  ggtitle(paste0('k=',stan_data$k,', n=',stan_data$n))+
   theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
         legend.title = element_text(color = plot_text_color, size = plot_text_size),
         legend.key.size = unit(3,"line"),
@@ -240,11 +237,11 @@ dens_1 <- stan_dens(mod_fit, 'delta', alpha = 0.3, include = TRUE, unconstrain =
         axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
         axis.title.y = element_text(color = plot_text_color, angle = 90,size = plot_text_size))+
   theme(plot.title = element_text(hjust=0.5))
-dens_2 <- stan_dens(mod_fit_1, 'delta', alpha = 0.3, include = TRUE, unconstrain = FALSE,
+dens_2 <- stan_dens(mod_fit, 'thetaprior', alpha = 0.3, include = TRUE, unconstrain = FALSE,
             inc_warmup = FALSE, separate_chains = TRUE) +
   scale_fill_manual(values = c(plot_color_3, plot_color_4))+
-  xlab('theta difference')+ylab('density')+
-  ggtitle(paste0('k1=',stan_data_1$k1,', n1=',stan_data_1$n1,'\n','k2=',stan_data_1$k2,', n2=',stan_data_1$n2))+
+  xlab('theta_prior')+ylab('density')+
+  ggtitle(paste0('k=',stan_data$k,', n=',stan_data$n))+
   theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
         legend.title = element_text(color = plot_text_color, size = plot_text_size),
         legend.key.size = unit(3,"line"),
@@ -260,7 +257,7 @@ p_ranges_x <- c(ggplot_build(patchwork[[1]])$layout$panel_scales_x[[1]]$range$ra
 p_ranges_y <- c(ggplot_build(patchwork[[1]])$layout$panel_scales_y[[1]]$range$range,
                 ggplot_build(patchwork[[2]])$layout$panel_scales_y[[1]]$range$range)
 
-patchwork + plot_annotation(title = 'comparison of datasets') +
+patchwork + plot_annotation(title = 'the two parameters') +
   plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = plot_text_size+2),
                                             plot.title=element_text(size = plot_text_size+2,hjust = 0.5)) &
   xlim(min(p_ranges_x), max(p_ranges_x)) & 
@@ -268,5 +265,62 @@ patchwork + plot_annotation(title = 'comparison of datasets') +
 
 ```
 
+
+### Plot (different distributions)
+The combined plot of the different distributions superimposed on each other.
+```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# create the dataframe to pot using ggplot
+df_plot <- data.frame(
+  theta = theta,
+  thetaprior = thetaprior
+  )
+df_plot_hist <- data.frame(
+  postpredk = postpredk,
+  priorpredk = priorpredk
+)
+# wide to long format
+df_plot <- gather(df_plot, parameter, value, theta:thetaprior, factor_key=TRUE)
+df_plot_hist <- gather(df_plot_hist, parameter, value, postpredk:priorpredk, factor_key=TRUE)
+
+# plot
+plot_top <- ggplot(df_plot, aes(x=value,fill=parameter)) + 
+  geom_density()+
+  scale_fill_manual(values = c(plot_color_6, plot_color_7))+
+  xlab('theta')+ylab('density')+
+  ggtitle(paste0('k=',stan_data$k,', n=',stan_data$n))+
+  theme_classic()+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y =element_blank())+
+  labs(fill = "")+guides(color = FALSE)+
+  theme(plot.title = element_text(hjust=0.5))
+
+plot_bottom <- ggplot(df_plot_hist, aes(x=value,fill=parameter,color=parameter)) + 
+  geom_histogram(position="identity",binwidth = 1,alpha=0.5)+
+  scale_color_manual(values = c(plot_color_3, plot_color_4))+
+  scale_fill_manual(values = c(plot_color_6, plot_color_7))+
+  xlab('success count')+ylab('mass')+
+  #ggtitle(paste0('k=',stan_data$k,', n=',stan_data$n))+
+  theme_classic()+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y =element_blank())+
+  labs(fill = "")+guides(color = FALSE)+
+  theme(plot.title = element_text(hjust=0.5))
+
+
+patchwork <- plot_top / plot_bottom
+patchwork + plot_annotation(title = 'different distributions') & 
+  theme(plot.tag = element_text(size = plot_text_size+2),
+        plot.title=element_text(size = plot_text_size+2,hjust = 0.5))
+```
 
 

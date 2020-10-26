@@ -136,7 +136,7 @@ print(mod_fit)  # a rough summary
 #plot(mod_fit)   # a visual representation
 
 # extract the data from the model
-mod_fit_extracted <- extract(mod_fit,inc_warmup = FALSE)
+mod_fit_extracted <- rstan::extract(mod_fit,inc_warmup = FALSE)
 loc_param <- which(names(mod_fit_extracted) == 'theta')
 param <- as.array(mod_fit)[,,loc_param]
 

@@ -94,7 +94,7 @@ parameters {
 } 
 transformed parameters {
   real<lower=-1,upper=1> delta;
-  delta <- theta1 - theta2;
+  delta = theta1 - theta2;
 }
 model {
   // Prior Distribution for Rate Theta
@@ -113,8 +113,8 @@ Running stan through R (with the required input parameters).
 ```{r echo=TRUE, results = 'hide', message=FALSE, warning=FALSE, paged.print=TRUE}
 
 myinits <- list(
-  list(theta1=.1),  # chain 1 starting value
-  list(theta2=.9))  # chain 2 starting value
+  list(theta1=.1,theta2=.9),  # chain 1 starting value
+  list(theta1=.9,theta2=.1))  # chain 2 starting value
 
 # parameters to be monitored:  
 parameters <- c("delta", "theta1", "theta2")

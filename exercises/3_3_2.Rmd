@@ -102,8 +102,8 @@ Running stan through R (with the required input parameters).
 ```{r echo=TRUE, results = 'hide', message=FALSE, warning=FALSE, paged.print=TRUE}
 
 myinits <- list(
-  list(theta1=.1),  # chain 1 starting value
-  list(theta2=.9))  # chain 2 starting value
+  list(theta=.1),  # chain 1 starting value
+  list(theta=.9))  # chain 2 starting value
 
 # parameters to be monitored:  
 parameters <- c("theta")
