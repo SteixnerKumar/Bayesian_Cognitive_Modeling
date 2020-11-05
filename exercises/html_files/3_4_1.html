@@ -1535,6 +1535,7 @@ div.tocify {
 <div id="commentssolution" class="section level1" number="2">
 <h1 number="2"><span class="header-section-number">2</span> Comments/Solution</h1>
 <p>The top panel represents the density (positive hits) of the parameters while the bottom panel is the number of counts of the prior and posterior positive hits. This is based on the given data for 5 positive hit out of 15. Look at the plots section (below) to visually inspect it further. You will also see the trace chain for the theta_prior all over the place, showing a flat prior (density plot clears it further).</p>
+<p>Line plots are for continuous quantities (e.g., rate parameter <span class="math inline">\(\theta\)</span>) and bar plots are for discrete quantities (e.g., success counts of data).</p>
 <p>The model used to calculate the required values and the plots is scripted below. Copy/pasting the given code will generate the same result on your own machine.</p>
 </div>
 <div id="code" class="section level1" number="3">
@@ -1560,7 +1561,7 @@ stan_data &lt;- list(k = k, n = n)</code></pre>
 </div>
 <div id="stan-code" class="section level2" number="3.3">
 <h2 number="3.3"><span class="header-section-number">3.3</span> Stan code</h2>
-<p>Stan code, that can be written in R as such or in a seperate new file with stan extension.</p>
+<p>Stan code, that can be written in R as such or in a separate new file with stan extension.</p>
 <pre class="r"><code>write(&quot;// Stan code here in this section
 
 // Prior and Posterior Prediction
@@ -1637,7 +1638,7 @@ mod_fit &lt;- stan(file=&quot;3_4_1.stan&quot;,
 ## priorpredk 1.00
 ## lp__       1.01
 ## 
-## Samples were drawn using NUTS(diag_e) at Mon Oct 26 19:07:02 2020.
+## Samples were drawn using NUTS(diag_e) at Thu Nov 05 21:37:06 2020.
 ## For each parameter, n_eff is a crude measure of effective sample size,
 ## and Rhat is the potential scale reduction factor on split chains (at 
 ## convergence, Rhat=1).</code></pre>

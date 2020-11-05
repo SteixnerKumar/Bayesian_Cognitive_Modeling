@@ -42,7 +42,9 @@ header-includes:
 Exercise 3.3.3 Compare the data sets k1 = 7, n1 = 10, k2 = 3, n2 = 10 and k1 = 5, n1 = 10, k2 = 5, n2 = 10. Make sure, following on from the previous question, that you understand why the comparison works the way it does.
 
 # Comments/Solution
-Comparing the two datasets in this exercise, we see that the common latent probability drives the two binomial processes and hence as the overall probability of both the datasets is essentially the same i.e. k=10 and n=20, we see identical posterior estimates of $\theta$ in both. Please check out the posterior plots section to visually compare this. 
+Comparing the two datasets in this exercise, we see that the common latent probability drives the two binomial processes and hence as the overall probability of both the datasets is essentially the same i.e. k=10 and n=20, we see identical posterior estimates of $\theta$ in both. Please check out the posterior plots section to visually compare this.
+
+In other words: The results for these data sets will be exactly the same. Because the model assumes a common rate, both data sets can in fact be re-described as having k = k1 + k2 = 10, n = n1 + n2 = 20.
 
 The model used to calculate the required values and the plots is scripted below. Copy/pasting the given code will generate the same result on your own machine.
 
@@ -50,7 +52,7 @@ The model used to calculate the required values and the plots is scripted below.
 # Code
 ## libraries
 The libraries required for the script and the plots.
-```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r libraries, echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # clears workspace
 rm(list=ls()) 
 #load libraries
@@ -62,7 +64,7 @@ library(patchwork)
 
 ## Data
 The data required for this particular stan model.
-```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r data, echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # data  initialization
 k1 <- 7;n1 <- 10;k2 <- 3;n2 <- 10
 # to be passed on to Stan
@@ -75,8 +77,8 @@ stan_data_1 <- list(k1 = k1, n1 = n1, k2 = k2, n2 = n2)
 
 
 ## Stan code
-Stan code, that can be written in R as such or in a seperate new file with stan extension.
-```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+Stan code, that can be written in R as such or in a separate new file with stan extension.
+```{r stan_code, echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
 write("// Stan code here in this section
 
 // Inferring the common rate theta
@@ -102,7 +104,7 @@ model {
 
 ## code in R to run stan
 Running stan through R (with the required input parameters).
-```{r echo=TRUE, results = 'hide', message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r running_stan, echo=TRUE, results = 'hide', message=FALSE, warning=FALSE, paged.print=TRUE}
 
 myinits <- list(
   list(theta=.1),  # chain 1 starting value
@@ -138,7 +140,7 @@ mod_fit_1 <- stan(file="3_3_3.stan",
 # Outputs
 ## Model summary
 In order of definition.
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r model_summary, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # The commands below are useful for a quick overview:
 print(mod_fit)  # a rough summary
 print(mod_fit_1)  # a rough summary
@@ -147,7 +149,7 @@ print(mod_fit_1)  # a rough summary
 
 ## Plots
 
-```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+```{r plot_defaults, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
 # Diagnostic plot
 # stan_par(mod_fit, 'theta', chain = 0)
 
@@ -166,7 +168,7 @@ plot_text_color <- adjustcolor("black",alpha.f=1)
 
 ### Plot (chains)
 The initial movement of the chains are shown here (including the warmup phase). The two chains begin from the initial starting points of as defined in the input parameters of the stan model.
-```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r plot_chain, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # chain plot
 x_limit <- c(0,200)
 trace_1 <- traceplot(mod_fit, 'theta', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE,show.legend = FALSE)+
@@ -216,7 +218,7 @@ patchwork + plot_annotation(title = 'comparison of datasets') +
 
 ### Plot (posterior)
 The plot of the $\theta$ values per chain superimposed on each other.
-```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r plot_posterior, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # Now let's plot a histogram/density for theta.
 # Plot
 

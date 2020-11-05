@@ -1534,7 +1534,8 @@ div.tocify {
 </div>
 <div id="commentssolution" class="section level1" number="2">
 <h1 number="2"><span class="header-section-number">2</span> Comments/Solution</h1>
-<p>Looking at the posterior distribution from the previous exercises we know that ading more data will make the posterior estimate narrower and less uncertain. Now we can also run the model script of the two datasets and observe these effects. Have a look at the plots section below.</p>
+<p>Looking at the posterior distribution from the previous exercises we know that adding more data will make the posterior estimate narrower and less uncertain. Now we can also run the model script of the two datasets and observe these effects. Have a look at the plots section below.</p>
+<p>In different words: When you have more information (i.e., high n) the posteriors–for the individual rates, as well as for the difference between them that is of interest—become more peaked. This means that you are more certain about what values for the difference are plausible, and what values are not.</p>
 <p>The model used to calculate the required values and the plots is scripted below. Copy/pasting the given code will generate the same result on your own machine.</p>
 </div>
 <div id="code" class="section level1" number="3">
@@ -1563,7 +1564,7 @@ stan_data_1 &lt;- list(k1 = k1, n1 = n1, k2 = k2, n2 = n2)</code></pre>
 </div>
 <div id="stan-code" class="section level2" number="3.3">
 <h2 number="3.3"><span class="header-section-number">3.3</span> Stan code</h2>
-<p>Stan code, that can be written in R as such or in a seperate new file with stan extension.</p>
+<p>Stan code, that can be written in R as such or in a separate new file with stan extension.</p>
 <pre class="r"><code>write(&quot;// Stan code here in this section
 
 // Inferring delta through theta1 and theta2
@@ -1641,7 +1642,7 @@ mod_fit_1 &lt;- stan(file=&quot;3_2_1.stan&quot;,
 ## theta2   0.67    0.00 0.13   0.39   0.58   0.68   0.76   0.90  3664    1
 ## lp__   -15.44    0.02 1.04 -18.22 -15.85 -15.13 -14.69 -14.42  1732    1
 ## 
-## Samples were drawn using NUTS(diag_e) at Mon Oct 26 19:03:52 2020.
+## Samples were drawn using NUTS(diag_e) at Thu Nov 05 21:35:47 2020.
 ## For each parameter, n_eff is a crude measure of effective sample size,
 ## and Rhat is the potential scale reduction factor on split chains (at 
 ## convergence, Rhat=1).</code></pre>
@@ -1660,7 +1661,7 @@ mod_fit_1 &lt;- stan(file=&quot;3_2_1.stan&quot;,
 ## theta2    1
 ## lp__      1
 ## 
-## Samples were drawn using NUTS(diag_e) at Mon Oct 26 19:03:52 2020.
+## Samples were drawn using NUTS(diag_e) at Thu Nov 05 21:35:48 2020.
 ## For each parameter, n_eff is a crude measure of effective sample size,
 ## and Rhat is the potential scale reduction factor on split chains (at 
 ## convergence, Rhat=1).</code></pre>

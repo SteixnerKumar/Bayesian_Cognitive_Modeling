@@ -42,7 +42,9 @@ header-includes:
 Exercise 3.4.2 Try different priors on $\theta$, by changing $\theta$ ~ Beta(1,1) to $\theta$ ~ Beta(10,10), $\theta$ ~ Beta(1,5), and $\theta$ ~ Beta(0.1,0.1). Use the figures produced to understand the assumptions these priors capture, and how they interact with the same data to produce posterior inferences and predictions.
 
 # Comments/Solution
-The posterior distributions are dependent on the priors given for the inference. The chose prior can have huge implications as they may mean different things altogether. If the observed data are infinite (or atleast a very huge number), then all posterior distribution will always converge to the true value. But, practically this is not the scenario, we do not have the resources to observe infinite data and hence we should carefully choose our prior. In this exercise, we have tested 4 different priors and see different outcomes for the posterior. For our data and number of iterations in the model fit, we observe slightly similar posteriors. Please have a look at the plots and specially the last plot comparing the 4 different posteriors in one plot.
+The posterior distributions are dependent on the priors given for the inference. The chose prior can have huge implications as they may mean different things altogether. If the observed data are infinite (or at least a very huge number), then all posterior distribution will always converge to the true value. But, practically this is not the scenario, we do not have the resources to observe infinite data and hence we should carefully choose our prior. In this exercise, we have tested 4 different priors and see different outcomes for the posterior. For our data and number of iterations in the model fit, we observe slightly similar posteriors. Please have a look at the plots and specially the last plot comparing the 4 different posteriors in one plot.
+
+One of the nice properties of using the $\theta$ ~ Beta($\alpha,\beta$) prior distribution for a rate $\theta$, is that it has a natural interpretation. The $\alpha$ and $\beta$ values can be thought of as counts of “prior successes” and “prior failures”, respectively. This means, using a $\theta$ ~ Beta(3,1) prior corresponds to having the prior information that 4 previous observations have been made, and 3 of them were successes. Or, more elaborately, starting with a $\theta$ ~ Beta(3,1) is the same as starting with a $\theta$ ~ Beta(1,1), and then seeing data giving two more successes (i.e., the posterior distribution in the second scenario will be same as the prior distribution in the first). As always in Bayesian analysis, inference starts with prior information, and updates that information—by changing the probability distribution representing the uncertain information—as more information becomes available. When a type of likelihood function (in this case, the Binomial) does not change the type of distribution (in this case, the Beta) going from the posterior to the prior, they are said to have a “conjugate” relationship. This is valued a lot in analytic approaches to Bayesian inference, because it makes for tractable calculations. It is not so important for that reason in computational approaches, because sampling methods can handle easily much more general relationships between parameter distributions and likelihood functions. But conjugacy is still useful in computational approaches because of the natural semantics it gives in setting prior distributions.
 
 The model used to calculate the required values and the plots is scripted below. Copy/pasting the given code will generate the same result on your own machine.
 
@@ -50,7 +52,7 @@ The model used to calculate the required values and the plots is scripted below.
 # Code
 ## libraries
 The libraries required for the script and the plots.
-```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r libraries, echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # clears workspace
 rm(list=ls()) 
 #load libraries
@@ -63,7 +65,7 @@ library(patchwork)
 
 ## Data
 The data required for this particular stan model.
-```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r data, echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # data  initialization
 k <- 5;n <- 15
 # to be passed on to Stan
@@ -72,8 +74,8 @@ stan_data <- list(k = k, n = n)
 
 
 ## Stan code
-Stan code, that can be written in R as such or in a seperate new file with stan extension.
-```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+Stan code, that can be written in R as such or in a separate new file with stan extension.
+```{r stan_code, echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
 write("// Stan code here in this section
 
 // Prior and Posterior Prediction
@@ -134,7 +136,7 @@ generated quantities {
 
 ## code in R to run stan
 Running stan through R (with the required input parameters).
-```{r echo=TRUE, results = 'hide', message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r running_stan, echo=TRUE, results = 'hide', message=FALSE, warning=FALSE, paged.print=TRUE}
 
 myinits <- list(
   list(theta1=.5,theta2=.5,theta3=.5,theta4=.5,thetaprior1=.5,thetaprior2=.5,thetaprior3=.5,thetaprior4=.5),  # chain 1 starting value
@@ -160,13 +162,13 @@ mod_fit <- stan(file="3_4_2.stan",
 # Outputs
 ## Model summary
 In order of definition.
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r model_summary, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # The commands below are useful for a quick overview:
 print(mod_fit)  # a rough summary
 #plot(mod_fit)   # a visual representation
 ```
 
-```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+```{r model_parameters, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
 # get the data from the model
 theta1   <- rstan::extract(mod_fit)$theta1
 theta2   <- rstan::extract(mod_fit)$theta2
@@ -188,7 +190,7 @@ postpredk4   <- rstan::extract(mod_fit)$postpredk4
 
 ## Plots
 
-```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+```{r plot_defaults, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
 # Diagnostic plot
 # stan_par(mod_fit, 'theta', chain = 0)
 
@@ -213,7 +215,7 @@ plot_text_color <- adjustcolor("black",alpha.f=1)
 The initial movement of the chains are shown here (including the warmup phase). The two chains begin from the initial starting points of as defined in the input parameters of the stan model.
 
 #### plot for $\theta$ ~Beta(1,1)
-```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r plot_chain_1, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # chain plot
 x_limit <- c(0,200)
 trace_1 <- traceplot(mod_fit, 'theta1', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE,show.legend = FALSE)+
@@ -262,7 +264,7 @@ patchwork + plot_annotation(title = 'the two parameters') +
 ```
 
 #### plot for $\theta$ ~Beta(10,10)
-```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r plot_chain_2, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # chain plot
 x_limit <- c(0,200)
 trace_1 <- traceplot(mod_fit, 'theta2', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE,show.legend = FALSE)+
@@ -311,7 +313,7 @@ patchwork + plot_annotation(title = 'the two parameters') +
 ```
 
 #### plot for $\theta$ ~Beta(1,5)
-```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r plot_chain_3, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # chain plot
 x_limit <- c(0,200)
 trace_1 <- traceplot(mod_fit, 'theta3', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE,show.legend = FALSE)+
@@ -360,7 +362,7 @@ patchwork + plot_annotation(title = 'the two parameters') +
 ```
 
 #### plot for $\theta$ ~Beta(0.1,0.1)
-```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r plot_chain_4, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # chain plot
 x_limit <- c(0,200)
 trace_1 <- traceplot(mod_fit, 'theta4', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE,show.legend = FALSE)+
@@ -412,7 +414,7 @@ patchwork + plot_annotation(title = 'the two parameters') +
 The plot of the $\theta$ values per chain superimposed on each other.
 
 #### plot for $\theta$ ~Beta(1,1)
-```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r plot_posterior_1, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # Now let's plot a histogram/density for theta.
 # Plot
 
@@ -458,7 +460,7 @@ patchwork + plot_annotation(title = 'the two parameters') +
 ```
 
 #### plot for $\theta$ ~Beta(10,10)
-```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r plot_posterior_2, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # Now let's plot a histogram/density for theta.
 # Plot
 
@@ -504,7 +506,7 @@ patchwork + plot_annotation(title = 'the two parameters') +
 ```
 
 #### plot for $\theta$ ~Beta(1,5)
-```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r plot_posterior_3, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # Now let's plot a histogram/density for theta.
 # Plot
 
@@ -550,7 +552,7 @@ patchwork + plot_annotation(title = 'the two parameters') +
 ```
 
 #### plot for $\theta$ ~Beta(0.1,0.1)
-```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r plot_posterior_4, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # Now let's plot a histogram/density for theta.
 # Plot
 
@@ -600,7 +602,7 @@ patchwork + plot_annotation(title = 'the two parameters') +
 The combined plot of the different distributions superimposed on each other.
 
 #### plot for $\theta$ ~ Beta(1,1)
-```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r plot_posterior_5, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # create the dataframe to pot using ggplot
 df_plot <- data.frame(
   theta1 = theta1,
@@ -656,7 +658,7 @@ patchwork + plot_annotation(title = 'different distributions') &
 ```
 
 #### plot for $\theta$ ~ Beta(10,10)
-```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r plot_posterior_6, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # create the dataframe to pot using ggplot
 df_plot <- data.frame(
   theta2 = theta2,
@@ -712,7 +714,7 @@ patchwork + plot_annotation(title = 'different distributions') &
 ```
 
 #### plot for $\theta$ ~ Beta(1,5)
-```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r plot_posterior_7, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # create the dataframe to pot using ggplot
 df_plot <- data.frame(
   theta3 = theta3,
@@ -768,7 +770,7 @@ patchwork + plot_annotation(title = 'different distributions') &
 ```
 
 #### plot for $\theta$ ~ Beta(0.1,0.1)
-```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r plot_posterior_8, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # create the dataframe to pot using ggplot
 df_plot <- data.frame(
   theta4 = theta4,
@@ -826,7 +828,7 @@ patchwork + plot_annotation(title = 'different distributions') &
 ### Plot (different posteriors together)
 The combined plot of the different posterior distributions superimposed on each other. These are for $\theta$ ~ Beta(1,1), $\theta$ ~ Beta(10,10), $\theta$ ~ Beta(1,5) and $\theta$ ~ Beta(0.1,0.1)
 
-```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r plot_posterior_9, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # create the dataframe to pot using ggplot
 df_plot <- data.frame(
   theta1 = theta1,

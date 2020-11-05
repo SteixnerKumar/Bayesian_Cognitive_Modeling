@@ -43,7 +43,9 @@ Exercise 3.2.2 Try the data k1 = 0, n1 = 1, and k2 = 0, n2 = 5. Can you explain
 the shape of the posterior for $\delta$.
 
 # Comments/Solution
-Here we compare the dataset k1 = 0, n1 = 1, and k2 = 0, n2 = 5 to a default dataset of k1 = 80, n1 = 100, and k2 = 70, n2 = 100 side by side to better understand the effect. We see (posterior plots below) that as the number of data samples are lower the posterior is very wide and uncertain. A higher number of n will make it narrower. 
+Here we compare the dataset k1 = 0, n1 = 1, and k2 = 0, n2 = 5 to a default dataset of k1 = 80, n1 = 100, and k2 = 70, n2 = 100 side by side to better understand the effect. We see (posterior plots below) that as the number of data samples are lower the posterior is very wide and uncertain. A higher number of n will make it narrower.
+
+The key to understanding the posterior is that you can be relatively sure that $\theta_2$ is small, but you cannot be so sure about the value of $\theta_1$. This means $\theta_1$ − $\theta_2$ could be a large positive value, because $\theta_1$ could be large and $\theta_2$ small. But $\theta_1$−$\theta_2$ cannot be a large negative value, since $\theta_2$ is small. The asymmetry in the uncertainty about $\theta_1$ and $\theta_2$ creates the asymmetry evident in the posterior for the difference.
 
 
 The model used to calculate the required values and the plots is scripted below. Copy/pasting the given code will generate the same result on your own machine.
@@ -52,7 +54,7 @@ The model used to calculate the required values and the plots is scripted below.
 # Code
 ## libraries
 The libraries required for the script and the plots.
-```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r libraries, echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # clears workspace
 rm(list=ls()) 
 #load libraries
@@ -64,7 +66,7 @@ library(patchwork)
 
 ## Data
 The data required for this particular stan model.
-```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r data, echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # data  initialization
 k1 <- 80;n1 <- 100;k2 <- 70;n2 <- 100
 # to be passed on to Stan
@@ -77,8 +79,8 @@ stan_data_1 <- list(k1 = k1, n1 = n1, k2 = k2, n2 = n2)
 
 
 ## Stan code
-Stan code, that can be written in R as such or in a seperate new file with stan extension.
-```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+Stan code, that can be written in R as such or in a separate new file with stan extension.
+```{r stan_code, echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
 write("// Stan code here in this section
 
 // Inferring delta through theta1 and theta2
@@ -110,7 +112,7 @@ model {
 
 ## code in R to run stan
 Running stan through R (with the required input parameters).
-```{r echo=TRUE, results = 'hide', message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r running_stan, echo=TRUE, results = 'hide', message=FALSE, warning=FALSE, paged.print=TRUE}
 
 myinits <- list(
   list(theta1=.1,theta2=.9),  # chain 1 starting value
@@ -146,7 +148,7 @@ mod_fit_1 <- stan(file="3_2_2.stan",
 # Outputs
 ## Model summary
 In order of definition.
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r model_summary, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # The commands below are useful for a quick overview:
 print(mod_fit)  # a rough summary
 print(mod_fit_1)  # a rough summary
@@ -155,7 +157,7 @@ print(mod_fit_1)  # a rough summary
 
 ## Plots
 
-```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+```{r plot_defaults, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
 # Diagnostic plot
 # stan_par(mod_fit, 'theta', chain = 0)
 
@@ -174,7 +176,7 @@ plot_text_color <- adjustcolor("black",alpha.f=1)
 
 ### Plot (chains)
 The initial movement of the chains are shown here (including the warmup phase). The two chains begin from the initial starting points of as defined in the input parameters of the stan model.
-```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r plot_chain, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # chain plot
 x_limit <- c(0,200)
 trace_1 <- traceplot(mod_fit, 'delta', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE,show.legend = FALSE)+
@@ -223,8 +225,106 @@ patchwork + plot_annotation(title = 'comparison of datasets') +
 ```
 
 ### Plot (posterior)
+The plot of the $\theta_1$ and $\theta_2$ values per chain superimposed on each other.
+```{r plot_posterior_1, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# Now let's plot a histogram/density for theta.
+# Plot
+dens_1 <- stan_dens(mod_fit, 'theta1', alpha = 0.3, include = TRUE, unconstrain = FALSE,
+            inc_warmup = FALSE, separate_chains = TRUE,show.legend = FALSE) +
+  scale_fill_manual(values = c(plot_color_3, plot_color_4))+
+  xlab('theta 1')+ylab('density')+
+  ggtitle(paste0('k1=',stan_data$k1,', n1=',stan_data$n1,'\n','k2=',stan_data$k2,', n2=',stan_data$n2))+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y = element_text(color = plot_text_color, angle = 90,size = plot_text_size))+
+  theme(plot.title = element_text(hjust=0.5))
+dens_2 <- stan_dens(mod_fit, 'theta2', alpha = 0.3, include = TRUE, unconstrain = FALSE,
+            inc_warmup = FALSE, separate_chains = TRUE,show.legend = FALSE) +
+  scale_fill_manual(values = c(plot_color_3, plot_color_4))+
+  xlab('theta 2')+ylab('density')+
+  ggtitle(paste0('k1=',stan_data$k1,', n1=',stan_data$n1,'\n','k2=',stan_data$k2,', n2=',stan_data$n2))+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y =element_blank())+
+  theme(plot.title = element_text(hjust=0.5))
+dens_3 <- stan_dens(mod_fit_1, 'theta1', alpha = 0.3, include = TRUE, unconstrain = FALSE,
+            inc_warmup = FALSE, separate_chains = TRUE,show.legend = FALSE) +
+  scale_fill_manual(values = c(plot_color_3, plot_color_4))+
+  xlab('theta 1')+ylab('density')+
+  ggtitle(paste0('k1=',stan_data_1$k1,', n1=',stan_data_1$n1,'\n','k2=',stan_data_1$k2,', n2=',stan_data_1$n2))+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y = element_text(color = plot_text_color, angle = 90,size = plot_text_size))+
+  theme(plot.title = element_text(hjust=0.5))
+dens_4 <- stan_dens(mod_fit_1, 'theta2', alpha = 0.3, include = TRUE, unconstrain = FALSE,
+            inc_warmup = FALSE, separate_chains = TRUE) +
+  scale_fill_manual(values = c(plot_color_3, plot_color_4))+
+  xlab('theta 2')+ylab('density')+
+  ggtitle(paste0('k1=',stan_data_1$k1,', n1=',stan_data_1$n1,'\n','k2=',stan_data_1$k2,', n2=',stan_data_1$n2))+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y =element_blank())+
+  theme(plot.title = element_text(hjust=0.5))
+# patchwork <- (dens_1+dens_2)/(dens_3+dens_4)
+# p_ranges_x <- c(ggplot_build(patchwork[[1]])$layout$panel_scales_x[[1]]$range$range,
+#   ggplot_build(patchwork[[2]])$layout$panel_scales_x[[1]]$range$range)
+# 
+# p_ranges_y <- c(ggplot_build(patchwork[[1]])$layout$panel_scales_y[[1]]$range$range,
+#                 ggplot_build(patchwork[[2]])$layout$panel_scales_y[[1]]$range$range)
+# 
+# patchwork + plot_annotation(title = 'comparison of datasets (theta values)') +
+#   plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = plot_text_size+2),
+#                                             plot.title=element_text(size = plot_text_size+2,hjust = 0.5)) &
+#   xlim(min(p_ranges_x), max(p_ranges_x)) & 
+#   ylim(min(p_ranges_y), max(p_ranges_y))
+patchwork1 <- (dens_1+dens_2)
+p_ranges_x <- c(ggplot_build(patchwork1[[1]])$layout$panel_scales_x[[1]]$range$range,
+                ggplot_build(patchwork1[[2]])$layout$panel_scales_x[[1]]$range$range)
+
+p_ranges_y <- c(ggplot_build(patchwork1[[1]])$layout$panel_scales_y[[1]]$range$range,
+                ggplot_build(patchwork1[[2]])$layout$panel_scales_y[[1]]$range$range)
+patchwork1 <- patchwork1 &
+  xlim(min(p_ranges_x), max(p_ranges_x)) & 
+  ylim(min(p_ranges_y), max(p_ranges_y))
+#
+patchwork2 <- (dens_3+dens_4)
+p_ranges_x <- c(ggplot_build(patchwork2[[1]])$layout$panel_scales_x[[1]]$range$range,
+                ggplot_build(patchwork2[[2]])$layout$panel_scales_x[[1]]$range$range)
+
+p_ranges_y <- c(ggplot_build(patchwork2[[1]])$layout$panel_scales_y[[1]]$range$range,
+                ggplot_build(patchwork2[[2]])$layout$panel_scales_y[[1]]$range$range)
+patchwork2 <- patchwork2 &
+  xlim(min(p_ranges_x), max(p_ranges_x)) & 
+  ylim(min(p_ranges_y), max(p_ranges_y))
+#
+patchwork <- patchwork1/patchwork2
+patchwork + plot_annotation(title = 'comparison of datasets (theta values)') +
+  plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = plot_text_size+2),
+                                            plot.title=element_text(size = plot_text_size+2,hjust = 0.5)) 
+
+
+```
+
+
+### Plot (posterior)
 The plot of the $\delta$ values per chain superimposed on each other.
-```{r, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r plot_posterior_2, fig.align="center", echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # Now let's plot a histogram/density for theta.
 # Plot
 

@@ -1535,6 +1535,7 @@ div.tocify {
 <div id="commentssolution" class="section level1" number="2">
 <h1 number="2"><span class="header-section-number">2</span> Comments/Solution</h1>
 <p>Comparing the two datasets in this exercise, we see that the common latent probability drives the two binomial processes and hence as the overall probability of both the datasets is essentially the same i.e. k=10 and n=20, we see identical posterior estimates of <span class="math inline">\(\theta\)</span> in both. Please check out the posterior plots section to visually compare this.</p>
+<p>In other words: The results for these data sets will be exactly the same. Because the model assumes a common rate, both data sets can in fact be re-described as having k = k1 + k2 = 10, n = n1 + n2 = 20.</p>
 <p>The model used to calculate the required values and the plots is scripted below. Copy/pasting the given code will generate the same result on your own machine.</p>
 </div>
 <div id="code" class="section level1" number="3">
@@ -1563,7 +1564,7 @@ stan_data_1 &lt;- list(k1 = k1, n1 = n1, k2 = k2, n2 = n2)</code></pre>
 </div>
 <div id="stan-code" class="section level2" number="3.3">
 <h2 number="3.3"><span class="header-section-number">3.3</span> Stan code</h2>
-<p>Stan code, that can be written in R as such or in a seperate new file with stan extension.</p>
+<p>Stan code, that can be written in R as such or in a separate new file with stan extension.</p>
 <pre class="r"><code>write(&quot;// Stan code here in this section
 
 // Inferring the common rate theta
@@ -1633,7 +1634,7 @@ mod_fit_1 &lt;- stan(file=&quot;3_3_3.stan&quot;,
 ## theta   0.50    0.00 0.1   0.30   0.43   0.50   0.57   0.70  1513    1
 ## lp__  -15.76    0.02 0.7 -17.78 -15.93 -15.49 -15.30 -15.25  2169    1
 ## 
-## Samples were drawn using NUTS(diag_e) at Mon Oct 26 19:06:55 2020.
+## Samples were drawn using NUTS(diag_e) at Thu Nov 05 21:37:01 2020.
 ## For each parameter, n_eff is a crude measure of effective sample size,
 ## and Rhat is the potential scale reduction factor on split chains (at 
 ## convergence, Rhat=1).</code></pre>
@@ -1645,7 +1646,7 @@ mod_fit_1 &lt;- stan(file=&quot;3_3_3.stan&quot;,
 ## theta   0.50    0.00 0.1   0.30   0.43   0.50   0.57   0.70  1513    1
 ## lp__  -15.76    0.02 0.7 -17.78 -15.93 -15.49 -15.30 -15.25  2169    1
 ## 
-## Samples were drawn using NUTS(diag_e) at Mon Oct 26 19:06:56 2020.
+## Samples were drawn using NUTS(diag_e) at Thu Nov 05 21:37:01 2020.
 ## For each parameter, n_eff is a crude measure of effective sample size,
 ## and Rhat is the potential scale reduction factor on split chains (at 
 ## convergence, Rhat=1).</code></pre>

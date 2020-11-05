@@ -1,0 +1,377 @@
+---
+title: "Exercise 5.3.2"
+description: | 
+  Individual exercise document
+author: |
+  | [Saurabh Steixner-Kumar](https://steixnerkumar.github.io/)
+  | \footnotesize (social): [\large\faLinkedinSquare](https://www.linkedin.com/in/SteixnerKumar/) -  [\large\faGithub](https://github.com/SteixnerKumar) -  [\large\faTwitter](https://twitter.com/SteixnerKumar)
+output: 
+  html_document: 
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 17
+    number_sections: yes
+    toc: yes
+    toc_float: true
+  html_notebook: 
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 17
+    number_sections: yes
+    toc: yes
+  pdf_document:
+    latex_engine: xelatex 
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 17
+    keep_tex: no
+    number_sections: yes
+    toc: yes
+editor_options: 
+  chunk_output_type: inline
+# runtime: shiny
+header-includes:
+  - \usepackage{titling}
+  - '\defaultfontfeatures{Extension = .otf}'
+  - '\usepackage{fontawesome}'
+  - \preauthor{\begin{flushright}}
+  - \postauthor{\end{flushright}}
+---
+
+# Question
+Exercise 5.3.2 Hearing Loss Assessment Trial. Grant (1974) reported data from a screening of a pre-school population intended to assess the adequacy of a school nurse assessment of hearing loss in relation to expert assessment. Of those children assessed as having hearing loss by the expert, 20 were correctly identified by the nurse and 7 were missed. Of those assessed as not having hearing loss by the expert, 417 were correctly diagnosed by the nurse but 103 were incorrectly diagnosed as having hearing loss. These data correspond to a = 20, b = 7, c = 103, d = 417. Once again, examine the posterior distributions of the interesting variables, and reach a scientific conclusion. Once again, what would your two- or three-sentence “take home message” conclusion be to your customers?
+
+# Comments/Solution
+Compared to the expert, the nurse displays a bias to classify children as having hearing loss. In addition, the nurse misses 7 out of 27 children with hearing loss. The nurse is doing a poor job, and this is reflected in the 95% credible interval (ETI) for kappa of (approximately, up to sampling) (.12, .28).
+
+The model used to calculate the required values and the plots is scripted below. Copy/pasting the given code will generate the same result on your own machine.
+
+
+# Code
+## libraries
+The libraries required for the script and the plots.
+```{r libraries, echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# clears workspace
+rm(list=ls()) 
+#load libraries
+library(rstan)
+library(bayestestR)
+library(tidyr)
+library(ggplot2)
+library(patchwork)
+```
+
+
+## Data
+The data required for this particular stan model.
+```{r data, echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# data  initialization
+# Hearing Loss 
+y <- c(20, 7, 103, 417)
+# to be passed on to Stan
+stan_data <- list(y=y)
+```
+
+
+## Stan code
+Stan code, that can be written in R as such or in a separate new file with stan extension.
+```{r stan_code, echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+write("// Stan code here in this section
+
+// Kappa Coefficient of Agreement
+data { 
+  int<lower=0> y[4];
+}
+parameters {
+  // Underlying Rates
+  // Rate Objective Method Decides 'one'
+  real<lower=0,upper=1> alpha;
+  // Rate Surrogate Method Decides 'one' When Objective Method Decides 'one'
+  real<lower=0,upper=1> beta;
+  // Rate Surrogate Method Decides 'zero' When Objective Method Decides 'zero'
+  real<lower=0,upper=1> gamma;
+} 
+transformed parameters {
+  simplex[4] pi;
+  real xi;
+  real psi;
+  real kappa;
+  // Probabilities For Each Count
+  pi[1] = alpha * beta;
+  pi[2] = alpha * (1 - beta);
+  pi[3] = (1 - alpha) * (1 - gamma);
+  pi[4] = (1 - alpha) * gamma;
+    
+  // Derived Measures   
+  // Rate Surrogate Method Agrees With the Objective Method
+  xi = alpha * beta + (1 - alpha) * gamma ;
+  // Rate of Chance Agreement
+  psi = (pi[1] + pi[2]) * (pi[1] + pi[3]) + (pi[2] + pi[4]) * (pi[3] + pi[4]);  
+  // Chance-Corrected Agreement
+  kappa = (xi - psi) / (1 - psi);
+}
+model {
+  alpha ~ beta(1, 1);  // could be removed
+  beta ~ beta(1, 1);  // could be removed
+  gamma ~ beta(1, 1);  // could be removed
+  // Count Data     
+  y ~ multinomial(pi);
+} // ",
+
+"5_3_2.stan")
+```
+
+## code in R to run stan
+Running stan through R (with the required input parameters).
+```{r running_stan, echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE, results='hide'}
+
+myinits <- list(
+  list(alpha=.5, beta=.5, gamma=.5),  # chain 1 starting value
+  list(alpha=.5, beta=.5, gamma=.5))  # chain 2 starting value
+
+# parameters to be monitored:  
+parameters <- c("kappa", "xi", "psi", "alpha", "beta", "gamma", "pi")
+
+# The following command calls Stan with specific options.
+# For a detailed description type "?stan".
+mod_fit <- stan(file="5_3_2.stan",   
+                data=stan_data, 
+                init=myinits,  # If not specified, gives random inits
+                pars=parameters,
+                iter=2000, 
+                chains=2, 
+                thin=1,
+                warmup=100,  # Stands for burn-in; Default = iter/2
+                seed=123  # Setting seed; Default is random seed
+)
+```
+
+# Outputs
+## Model summary
+In order of definition.
+```{r model_summary, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# The commands below are useful for a quick overview:
+print(mod_fit)  # a rough summary
+#plot(mod_fit)   # a visual representation
+```
+
+```{r model_parameters, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+# get the data from the model
+kappa   <- rstan::extract(mod_fit)$kappa
+xi <- rstan::extract(mod_fit)$xi
+psi   <- rstan::extract(mod_fit)$psi
+a <- rstan::extract(mod_fit)$pi[,1]
+b <- rstan::extract(mod_fit)$pi[,2]
+c <- rstan::extract(mod_fit)$pi[,3]
+d <- rstan::extract(mod_fit)$pi[,4]
+#
+# get the confidence interval
+ci_hdi <- ci(kappa, ci=0.95,method = "HDI")
+ci_eti <- ci(kappa, ci=0.95,method = "ETI")
+```
+
+## Plots
+
+```{r plot_defaults, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+# Diagnostic plot
+# stan_par(mod_fit, 'theta', chain = 0)
+
+# First, some options to make the plot look better:
+#
+plot_color_1 <- adjustcolor("black",alpha.f=1)
+plot_color_2 <- adjustcolor("white",alpha.f=1)
+plot_color_3 <- adjustcolor("darkred",alpha.f=1)
+plot_color_4 <- adjustcolor("darkgreen",alpha.f=1)
+plot_color_5 <- adjustcolor("blue",alpha.f=0.8)
+plot_color_6 <- adjustcolor("darkred",alpha.f=0.6)
+plot_color_7 <- adjustcolor("darkgreen",alpha.f=0.6)
+plot_text_size <- 32
+plot_text_color <- adjustcolor("black",alpha.f=1)
+
+```
+
+
+### Plot (chains)
+The initial movement of the chains are shown here (including the warmup phase). The two chains begin from the initial starting points of as defined in the input parameters of the stan model.
+```{r plot_chain, echo=FALSE, fig.align="center", message=FALSE, warning=FALSE, paged.print=TRUE}
+# chain plot
+x_limit <- c(0,200)
+#y_limit <- c(0.6,1)
+#
+trace_1 <- traceplot(mod_fit, 'xi', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE,show.legend = FALSE)+
+  xlim(x_limit[1], x_limit[2])+
+  #ylim(y_limit[1], y_limit[2])+
+  scale_color_manual(values = c(plot_color_3, plot_color_4)) +
+  theme(legend.position = "bottom")+
+  theme_classic()+
+  ylab('xi')+xlab('iterations')+
+  #ggtitle(paste0('k=',stan_data$k,', n=',stan_data$n))+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y = element_text(color = plot_text_color, size = plot_text_size))+
+  theme(plot.title = element_text(hjust=0.5))
+trace_2 <- traceplot(mod_fit, 'psi', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE,show.legend = FALSE)+
+  xlim(x_limit[1], x_limit[2])+
+  #ylim(y_limit[1], y_limit[2])+
+  scale_color_manual(values = c(plot_color_3, plot_color_4)) +
+  theme(legend.position = "bottom")+
+  theme_classic()+
+  ylab('psi')+xlab('iterations')+
+  #ggtitle(paste0('k=',stan_data$k,', n=',stan_data$n))+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y = element_text(color = plot_text_color, size = plot_text_size))+
+  theme(plot.title = element_text(hjust=0.5))
+trace_3 <- traceplot(mod_fit, 'kappa', include = TRUE, unconstrain = FALSE,inc_warmup = TRUE)+
+  xlim(x_limit[1], x_limit[2])+
+  scale_color_manual(values = c(plot_color_3, plot_color_4)) +
+  theme(legend.position = "bottom")+
+  theme_classic()+
+  ylab('kappa')+xlab('iterations')+
+  #ggtitle(paste0('k=',stan_data$k,', n=',stan_data$n))+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y = element_text(color = plot_text_color, size = plot_text_size))+
+  theme(plot.title = element_text(hjust=0.5))
+#
+patchwork <- trace_1+trace_2
+p_ranges_x <- c(ggplot_build(patchwork[[1]])$layout$panel_scales_x[[1]]$range$range,
+                ggplot_build(patchwork[[2]])$layout$panel_scales_x[[1]]$range$range)
+
+p_ranges_y <- c(ggplot_build(patchwork[[1]])$layout$panel_scales_y[[1]]$range$range,
+                ggplot_build(patchwork[[2]])$layout$panel_scales_y[[1]]$range$range)
+patchwork <- patchwork &
+  xlim(min(p_ranges_x), max(p_ranges_x)) & 
+  ylim(min(p_ranges_y), max(p_ranges_y))
+#
+patchwork <- patchwork/trace_3 
+patchwork + plot_annotation(title = 'the three parameters') +
+  plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = plot_text_size+2),
+                                            plot.title=element_text(size = plot_text_size+2,hjust = 0.5))
+
+```
+
+### Plot (posterior)
+The plot of the rate of agreement ($\xi$), rate of agreement by chance ($\psi$) and the chance-corrected agreement rate ($\kappa$) values per chain superimposed on each other. 
+```{r plot_posterior, echo=FALSE, fig.align="center", message=FALSE, warning=FALSE, paged.print=TRUE}
+# Now let's plot a histogram/density for theta.
+# density plot
+x_limit <- c(0.6,1)
+#y_limit <- c(0,20)
+# Plot
+dens_1 <- stan_dens(mod_fit, 'xi', alpha = 0.3, include = TRUE, unconstrain = FALSE,
+            inc_warmup = FALSE, separate_chains = TRUE,show.legend = FALSE) +
+  xlim(x_limit[1], x_limit[2])+
+  #ylim(y_limit[1], y_limit[2])+
+  scale_fill_manual(values = c(plot_color_3, plot_color_4))+
+  xlab('xi')+ylab('density')+
+  #ggtitle(paste0('k=',stan_data$k,', n=',stan_data$n))+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y =element_blank())+
+  theme(plot.title = element_text(hjust=0.5))
+dens_2 <- stan_dens(mod_fit, 'psi', alpha = 0.3, include = TRUE, unconstrain = FALSE,
+            inc_warmup = FALSE, separate_chains = TRUE,show.legend = FALSE) +
+  xlim(x_limit[1], x_limit[2])+
+  #ylim(y_limit[1], y_limit[2])+
+  scale_fill_manual(values = c(plot_color_3, plot_color_4))+
+  xlab('psi')+ylab('density')+
+  #ggtitle(paste0('k=',stan_data$k,', n=',stan_data$n))+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y =element_blank())+
+  theme(plot.title = element_text(hjust=0.5))
+dens_3 <- stan_dens(mod_fit, 'kappa', alpha = 0.3, include = TRUE, unconstrain = FALSE,
+            inc_warmup = FALSE, separate_chains = TRUE) +
+  scale_fill_manual(values = c(plot_color_3, plot_color_4))+
+  xlab('kappa')+ylab('')+
+  #ggtitle(paste0('k=',stan_data$k,', n=',stan_data$n))+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y =element_blank())+
+  theme(plot.title = element_text(hjust=0.5))
+#
+patchwork <- dens_1+dens_2
+p_ranges_x <- c(ggplot_build(patchwork[[1]])$layout$panel_scales_x[[1]]$range$range,
+                ggplot_build(patchwork[[2]])$layout$panel_scales_x[[1]]$range$range)
+
+p_ranges_y <- c(ggplot_build(patchwork[[1]])$layout$panel_scales_y[[1]]$range$range,
+                ggplot_build(patchwork[[2]])$layout$panel_scales_y[[1]]$range$range)
+patchwork <- patchwork &
+  xlim(min(p_ranges_x), max(p_ranges_x)) & 
+  ylim(min(p_ranges_y), max(p_ranges_y))
+#
+patchwork <- patchwork/dens_3 
+patchwork + plot_annotation(title = 'the three parameters') +
+  plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = plot_text_size+2),
+                                            plot.title=element_text(size = plot_text_size+2,hjust = 0.5))
+
+```
+
+### Plot (posterior with CI)
+The plot of the combined $\kappa$ value with confidence intervals. (HDI CI : blue; ETI CI : green)
+```{r plot_ci, echo=FALSE, fig.align="center", message=FALSE, warning=FALSE, paged.print=TRUE}
+# the data
+df_plot <- data.frame(
+  kappa = kappa
+  )
+df_plot <- gather(df_plot, parameter, value, kappa, factor_key=TRUE)
+# plot
+plot_1 <- ggplot(df_plot, aes(x=value,fill=parameter)) +
+  geom_density(show.legend = FALSE)+
+  scale_fill_manual(values = c(plot_color_6))+
+  xlab('kappa')+ylab('density')+
+  #ggtitle(paste('dataset; a,b,c,d: ',y))+
+  # HDI CI
+  geom_vline(aes(xintercept=ci_hdi$CI_low), color=plot_color_5, size=3,show.legend=F) +
+  geom_vline(xintercept=ci_hdi$CI_high, color=plot_color_5, size=3) +
+  #geom_text(aes(x=ci_hdi$CI_high, label="HDI", y=2), color=plot_color_5, angle=-90, vjust = -0.9)+
+  # ETI CI
+  geom_vline(aes(xintercept=ci_eti$CI_low), color=plot_color_7, size=2,show.legend=F) +
+  geom_vline(xintercept=ci_eti$CI_high, color=plot_color_7, size=2) +
+  #geom_text(aes(x=ci_eti$CI_high, label="ETI", y=2), color=plot_color_7, angle=-90, vjust = 1.2)+
+  theme_classic()+
+  theme(legend.text = element_text(color = plot_text_color, size = plot_text_size),
+        legend.title = element_text(color = plot_text_color, size = plot_text_size),
+        legend.key.size = unit(3,"line"),
+        axis.text.x = element_text(size = plot_text_size, angle = 0),
+        axis.text.y = element_text(size = plot_text_size, angle = 0),
+        axis.title.x = element_text(color = plot_text_color, size = plot_text_size),
+        axis.title.y =element_blank())+
+  labs(fill = "")+guides(color = FALSE)+
+  theme(plot.title = element_text(hjust=0.5))
+#
+plot_1
+```  
+
+## Confidence interval value
+The confidence interval values.
+```{r ci, echo=FALSE, fig.align="center", message=FALSE, warning=FALSE, paged.print=TRUE}
+# Confidence intervals
+ci_hdi
+ci_eti
+```

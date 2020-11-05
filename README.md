@@ -1,4 +1,6 @@
 # Bayesian_Cognitive_Modeling Exercises
+Thankful for the work by MICHAEL D. LEE AND ERIC-JAN WAGENMAKERS.
+
 Exercises in R and Stan of the Bayesian Cognitive Modeling book by Lee and Wagenmakers
 
 This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)
@@ -32,6 +34,8 @@ In the exercises folder of this repository you will also find individual .Rmd fi
 ***author: Saurabh Steixner-Kumar***
 
 ***email: s.steixner-kumar@uke.de*** 
+
+***twitter: [@SteixnerKumar](https://twitter.com/SteixnerKumar)*** 
 
 ###### [Back to Contents](https://github.com/SteixnerKumar/Bayesian_Cognitive_Modeling/blob/master/README.md#Contents)
 
